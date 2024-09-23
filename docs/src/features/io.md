@@ -38,8 +38,9 @@ CSV.write("out.csv", df)
 ```
 
 ## JLD2 and BSON.jl
-Solution objects contain function types, which JLD2 and BSON.jl are not able to serialize and deserialize correctly. 
-JLD2.jl and BSON.jl will work correctly on solution objects only after `SciMLBase.strip_solution` is called. For example, if we save the stripped solution:
+Solution objects contain function types, which can cause JLD2 and BSON.jl to serialize and deserialize incorrectly. 
+JLD2.jl will work correctly on solution objects only after `SciMLBase.strip_solution` is called on the object. 
+For example, if we save the stripped solution:
 
 ```@example IO
 sol = solve(prob, Euler(); dt = 1 // 2^(4))
@@ -47,18 +48,19 @@ stripped_sol = SciMLBase.strip_solution(sol)
 using JLD2
 @save "out.jld2" stripped_sol
 ```
-
-then we can get the stripped solution type back, interpolations intact.
+then we can get the stripped solution object back, interpolations intact.
 
 ```@example IO
 # New session
 using JLD2
 using OrdinaryDiffEq
-JLD2.@load "out.jld2" sol
+loaded_sol = load("out.jld2") 
 ```
 Note that stripped solutions do not contain any problem information. 
 
-The example with BSON.jl is:
+BSON.jl seems to work better with some functions, so it might not be necessary to
+strip the solution. Of course a stripped solution will serialize and deserialize 
+with BSON.jl just as well. 
 
 ```@example IO
 sol = solve(prob, Euler(); dt = 1 // 2^(4))
@@ -73,8 +75,7 @@ using BSON
 BSON.load("test.bson")
 ```
 
-If you load it without the DE function then for some algorithms the
-interpolation may not work, and for all algorithms you'll need
+For all algorithms you'll need
 at least a solver package or SciMLBase.jl in scope in order for
 the solution interface (plot recipes, array indexing, etc.) to
 work. If none of these are put into scope, the solution type
