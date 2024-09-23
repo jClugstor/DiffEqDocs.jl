@@ -38,18 +38,17 @@ CSV.write("out.csv", df)
 ```
 
 ## JLD2 and BSON.jl
-
-JLD2.jl and BSON.jl will work with the full solution type if you bring the required functions
-back into scope before loading. For example, if we save the solution:
+Solution objects contain function types, which JLD2 and BSON.jl are not able to serialize and deserialize correctly. 
+JLD2.jl and BSON.jl will work correctly on solution objects only after `SciMLBase.strip_solution` is called. For example, if we save the stripped solution:
 
 ```@example IO
 sol = solve(prob, Euler(); dt = 1 // 2^(4))
+stripped_sol = SciMLBase.strip_solution(sol)
 using JLD2
-@save "out.jld2" sol
+@save "out.jld2" stripped_sol
 ```
 
-then we can get the full solution type back, interpolations and all,
-if we load the dependent functions first:
+then we can get the stripped solution type back, interpolations intact.
 
 ```@example IO
 # New session
@@ -57,6 +56,7 @@ using JLD2
 using OrdinaryDiffEq
 JLD2.@load "out.jld2" sol
 ```
+Note that stripped solutions do not contain any problem information. 
 
 The example with BSON.jl is:
 
@@ -70,7 +70,7 @@ bson("test.bson", Dict(:sol => sol))
 # New session
 using OrdinaryDiffEq
 using BSON
-# BSON.load("test.bson") # currently broken: https://github.com/JuliaIO/BSON.jl/issues/109
+BSON.load("test.bson")
 ```
 
 If you load it without the DE function then for some algorithms the
@@ -80,12 +80,6 @@ the solution interface (plot recipes, array indexing, etc.) to
 work. If none of these are put into scope, the solution type
 will still load and hold all of the values (so `sol.u` and `sol.t`
 will work), but none of the interface will be available.
-
-If you want a copy of the solution that contains no function information 
-you can use the function `SciMLBase.strip_solution(sol)`.
-This will return a copy of the solution that doesn't have any functions, 
-which you can serialize and deserialize without having any of the problems
-that typically come with serializing functions. 
 
 ## JLD
 
