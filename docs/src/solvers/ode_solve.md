@@ -779,6 +779,15 @@ In addition, the Rosenbrock and SDIRK methods can set `diff_type`, which is the
 type of numerical differentiation that is used (when autodifferentiation is
 disabled). The choices are `Val{:central}`, `Val{:forward}` or `Val{:complex}`.
 
+Additionally, the Rosenbrock and SDIRK methods have differentiation
+controls. In each of these, `autodiff` can be set to either the `AutoForwardDiff` or `AutoFiniteDiff` ADType from [ADTypes.jl](https://sciml.github.io/ADTypes.jl/stable/).
+
+To set the chunksize of the Dual numbers when using ForwardDiff, the `chunksize` keyword argument to the `AutoForwardDiff` constructor can be used, see the
+[documentation for ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/stable/user/advanced/#Configuring-Chunk-Size), along with the [documentation for the AutoForwardDiff ADType](https://sciml.github.io/ADTypes.jl/stable/#ADTypes.AutoForwardDiff) for details.
+Additionally, when using FiniteDiff, the type of numerical differentiation that is used can be controlled by the `fdtype` keyword argument in the `AutoFiniteDiff` constructor. The choices are `Val{:central}`, `Val{:forward}` or `Val{:complex}`, see the [FiniteDiff.jl documentation](https://juliadiff.org/FiniteDiff.jl/stable/) and the [AutoFiniteDiff ADType documentation](https://sciml.github.io/ADTypes.jl/stable/#ADTypes.AutoFiniteDiff) for more details. 
+
+
+
 Examples:
 
 ```julia
